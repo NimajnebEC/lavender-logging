@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "lavender-logging"
+version = "0.1.0"
+description = ""
+authors = ["NimajnebEC <nimajnebec@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{ include = "lavender", from = "src" }]
+
+[tool.poetry.dependencies]
+environ-import = "^0.1.0"
+python = "^3.8.1"
+
+
+[tool.poetry.group.dev.dependencies]
+flake8-length = "^0.3.1"
+black = "^23.10.1"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
