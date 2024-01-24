@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "lavender-logging"
 version = "0.1.0"
-description = ""
+description = "An opinionated logger and configuration system."
 authors = ["NimajnebEC <nimajnebec@users.noreply.github.com>"]
 readme = "README.md"
 packages = [{ include = "lavender", from = "src" }]
