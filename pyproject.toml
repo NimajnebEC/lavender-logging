@@ -7,7 +7,6 @@ readme = "README.md"
 packages = [{ include = "lavender", from = "src" }]
 
 [tool.poetry.dependencies]
-environ-import = "^0.1.0"
 python = "^3.8.1"
 
 
