@@ -35,12 +35,22 @@ class PackagePattern:
             return 0 if package == self._pattern else None
 
 
-class WildcardLevelFilter(logging.Filter):
-    def __init__(self) -> None:
-        ...
+class CompositeLevelFilter(logging.Filter):
+    def __init__(self, default: int, levels: Dict[PackagePattern, int] = {}) -> None:
+        self.default = default
+        self.levels = levels
 
     def filter(self, record: logging.LogRecord) -> bool:
-        return True
+        best_level = self.default
+        best_ratio = 2
+
+        for pattern, level in self.levels.items():
+            ratio = pattern.match(record.name)
+            if ratio is not None and ratio < best_ratio:
+                best_ratio = ratio
+                best_level = level
+
+        return record.levelno >= best_level
 
 
 # The MIT License (MIT)
