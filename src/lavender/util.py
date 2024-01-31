@@ -8,7 +8,7 @@ class PackagePattern:
     def __init__(self, pattern: str) -> None:
         self._cache: Dict[str, Optional[float]] = {}
 
-        split = pattern.split(".")
+        split = pattern.strip(".").split(".")
 
         self._wildcard = split[-1] == "*"
         if self._wildcard:
@@ -34,23 +34,51 @@ class PackagePattern:
         else:
             return 0 if package == self._pattern else None
 
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, PackagePattern)
+            and self._pattern == other._pattern
+            and self._wildcard == other._wildcard
+        )
+
+    def __hash__(self) -> int:
+        return (hash(self._pattern) << 1) + self._wildcard
+
+    def __repr__(self) -> str:
+        full = self._pattern + (".*" if self._wildcard else "")
+        return f"<{type(self).__name__} '{full}'>"
+
 
 class CompositeLevelFilter(logging.Filter):
     def __init__(self, default: int, levels: Dict[PackagePattern, int] = {}) -> None:
-        self.default = default
-        self.levels = levels
+        self._cache: Dict[str, int] = {}
+        self._default = default
+        self._levels = levels
 
     def filter(self, record: logging.LogRecord) -> bool:
-        best_level = self.default
+        if record.name not in self._cache:
+            self._cache[record.name] = self.level_for(record.name)
+        return record.levelno >= self._cache[record.name]
+
+    def level_for(self, name: str) -> int:
+        best_level = self._default
         best_ratio = 2
 
-        for pattern, level in self.levels.items():
-            ratio = pattern.match(record.name)
+        for pattern, level in self._levels.items():
+            ratio = pattern.match(name)
             if ratio is not None and ratio < best_ratio:
                 best_ratio = ratio
                 best_level = level
 
-        return record.levelno >= best_level
+        return best_level
+
+    def set_default(self, level: int) -> None:
+        self._default = level
+        self._cache.clear()
+
+    def set_level(self, pattern: PackagePattern, level: int) -> None:
+        self._levels[pattern] = level
+        self._cache.clear()
 
 
 # The MIT License (MIT)
