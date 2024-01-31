@@ -4,6 +4,26 @@ import sys
 from typing import Dict, Optional, TextIO
 
 
+def setup(level: int):
+    handler = logging.StreamHandler()
+    if stream_supports_colour(handler.stream):
+        handler.setFormatter(ColourFormatter())
+    else:
+        handler.setFormatter(
+            logging.Formatter(
+                "[{asctime}] [{levelname:<8}] {name}: {message}",
+                "%Y-%m-%d %H:%M:%S",
+                style="{",
+            )
+        )
+
+    handler.addFilter(CompositeLevelFilter(level))
+
+    logger = logging.getLogger()
+    logger.addHandler(handler)
+    logger.setLevel(0)
+
+
 class PackagePattern:
     def __init__(self, pattern: str) -> None:
         self._cache: Dict[str, Optional[float]] = {}
