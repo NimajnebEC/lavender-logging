@@ -1,3 +1,8 @@
-from lavender.util import setup
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING, getLogger
 
-__all__ = ("setup",)
+from lavender.lavender import setup
+
+__version__ = "${pyproject.tool.poetry.version}"
+__version__ = "${pyproject.tool.poetry.authors.0}"
+
+__all__ = ("setup", "CRITICAL", "DEBUG", "ERROR", "INFO", "WARNING", "getLogger")
