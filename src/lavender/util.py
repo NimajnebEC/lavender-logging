@@ -3,10 +3,21 @@ import os
 import sys
 from typing import Dict, Optional, TextIO
 
+ENVIRON_CONFIG_PREFIX = "LOG_"
 
-def setup(level: int):
-    handler = logging.StreamHandler()
-    if stream_supports_colour(handler.stream):
+
+def setup(
+    *,
+    level: int = logging.INFO,
+    logger: logging.Logger = logging.getLogger(),
+    handler: logging.Handler = logging.StreamHandler(),
+    formatter: Optional[logging.Formatter] = None,
+    filter_config: Dict[str, int] = {},
+    environ_config: bool = True,
+):
+    if formatter is not None:
+        handler.setFormatter(formatter)
+    elif isinstance(handler, logging.StreamHandler) and stream_supports_colour(handler.stream):
         handler.setFormatter(ColourFormatter())
     else:
         handler.setFormatter(
@@ -17,9 +28,18 @@ def setup(level: int):
             )
         )
 
-    handler.addFilter(CompositeLevelFilter(level))
+    # Load configurations
+    if environ_config:
+        for key, value in logging._nameToLevel.items():
+            key = ENVIRON_CONFIG_PREFIX + key
+            if key in os.environ:
+                patterns = os.environ[key].split(os.pathsep)
+                for pattern in patterns:
+                    filter_config[pattern] = value
 
-    logger = logging.getLogger()
+    filters = {PackagePattern(k): v for k, v in filter_config.items()}
+    handler.addFilter(CompositeLevelFilter(level, filters))
+
     logger.addHandler(handler)
     logger.setLevel(0)
 
