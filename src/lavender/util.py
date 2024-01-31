@@ -1,26 +1,38 @@
 import logging
 import os
 import sys
-from typing import Dict, TextIO
+from typing import Dict, Optional, TextIO
 
 
 class PackagePattern:
     def __init__(self, pattern: str) -> None:
-        self._wildcard = pattern.split(".")[-1] == "*"
-        self._cache: Dict[str, bool] = {}
-        self._pattern = pattern[: (-2 if self._wildcard else -1)]
+        self._cache: Dict[str, Optional[float]] = {}
 
-    def match(self, package: str) -> bool:
+        split = pattern.split(".")
+
+        self._wildcard = split[-1] == "*"
+        if self._wildcard:
+            split.pop(-1)
+
+        self._segments = len(split)
+        self._pattern = ".".join(split)
+        self._length = len(self._pattern)
+
+    def match(self, package: str) -> Optional[float]:
         if package not in self._cache:
             self._cache[package] = self._match(package)
 
         return self._cache[package]
 
-    def _match(self, package: str) -> bool:
+    def _match(self, package: str) -> Optional[float]:
         if self._wildcard:
-            return package.startswith(self._pattern)
+            if package.startswith(self._pattern):
+                inferred = len(package[self._length + 1 :].split(".")) + 1
+                total = inferred + self._segments
+                return inferred / total
+            return None
         else:
-            return package == self._pattern
+            return 0 if package == self._pattern else None
 
 
 class WildcardLevelFilter(logging.Filter):
